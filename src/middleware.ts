@@ -47,7 +47,10 @@ export async function updateSession(request: NextRequest) {
             !request.nextUrl.pathname.startsWith('/auth') &&
             request.nextUrl.pathname !== '/'
         ) {
-            // no user, potentially redirect allowed here
+            // Redirect unauthenticated users to login
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
         }
 
         // Admin Verification Logic (Placeholder for now)

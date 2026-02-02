@@ -30,6 +30,28 @@ export async function login(formData: FormData) {
         return { error: error.message }
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        const role = profile?.role
+
+        revalidatePath('/', 'layout')
+
+        if (role === 'admin') {
+            redirect('/admin/masters')
+        } else if (role === 'master') {
+            redirect('/master')
+        } else {
+            redirect('/')
+        }
+    }
+
     revalidatePath('/', 'layout')
     redirect('/')
 }
