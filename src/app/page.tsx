@@ -15,13 +15,13 @@ export default function Home() {
         </Typography>
       </Box>
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} width="100%" justifyContent="center">
-        <Paper sx={{ p: 4, flex: 1, textAlign: 'center' }}>
+      <Stack direction="row" justifyContent="center" width="100%">
+        <Paper sx={{ p: 4, width: '100%', maxWidth: 400, textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
-            For Clients
+            Welcome
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Sign waivers and manage your profile.
+            Sign in to access your account.
           </Typography>
           <Button
             component={Link}
@@ -30,25 +30,7 @@ export default function Home() {
             size="large"
             fullWidth
           >
-            Client Sign In
-          </Button>
-        </Paper>
-
-        <Paper sx={{ p: 4, flex: 1, textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
-            For Masters
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Manage procedures and compliance.
-          </Typography>
-          <Button
-            component={Link}
-            href="/admin"
-            variant="outlined"
-            size="large"
-            fullWidth
-          >
-            Admin Dashboard
+            Sign In
           </Button>
         </Paper>
       </Stack>
