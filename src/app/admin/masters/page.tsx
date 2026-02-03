@@ -36,31 +36,44 @@ export default function MastersPage() {
 
     return (
         <Box>
-            <Typography variant="h4" gutterBottom>
+            <Typography
+                variant="h3"
+                gutterBottom
+                sx={{ fontFamily: 'var(--font-playfair), serif', color: 'primary.dark', fontWeight: 700 }}
+            >
                 Manage Masters
             </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 6, letterSpacing: 0.5 }}>
+                Invite and curate the precision-oriented experts of your sanctuary.
+            </Typography>
 
-            <Paper sx={{ p: 4, maxWidth: 600 }}>
-                <Typography variant="h6" gutterBottom>
+            <Paper sx={{
+                p: 5,
+                maxWidth: 600,
+                background: 'linear-gradient(to bottom right, #ffffff, #fbfaff)',
+            }}>
+                <Typography variant="h5" gutterBottom sx={{ fontFamily: 'var(--font-playfair), serif', fontWeight: 600 }}>
                     Create New Master
                 </Typography>
-                <Divider sx={{ mb: 3 }} />
+                <Divider sx={{ mb: 4, borderColor: 'rgba(149, 117, 205, 0.08)' }} />
 
-                {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-                <Stack component="form" spacing={2} onSubmit={handleSubmit}>
+                <Stack component="form" spacing={3} onSubmit={handleSubmit}>
                     <TextField
                         name="fullName"
                         label="Full Name"
                         required
                         fullWidth
+                        placeholder="e.g. Elena Petrova"
                     />
                     <TextField
                         name="salonName"
                         label="Salon Name"
                         required
                         fullWidth
+                        placeholder="e.g. The Ritual Art"
                     />
                     <TextField
                         name="email"
@@ -68,8 +81,14 @@ export default function MastersPage() {
                         type="email"
                         required
                         fullWidth
+                        placeholder="master@example.com"
                     />
-                    <Button type="submit" variant="contained" size="large">
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        sx={{ mt: 2 }}
+                    >
                         Send Invitation & Create Master
                     </Button>
                 </Stack>
