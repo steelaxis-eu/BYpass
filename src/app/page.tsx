@@ -1,6 +1,5 @@
-'use client'
-
-import { Box, Button, Container, Typography, Stack, Paper, Grid, Divider, useTheme } from '@mui/material'
+import { Box, Button, Container, Typography, Stack, Paper, Divider, useTheme } from '@mui/material'
+import Grid from '@mui/material/Grid2'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import React, { useEffect, useState } from 'react'
@@ -86,7 +85,7 @@ export default function Home() {
       {/* Why Section */}
       <Container maxWidth="lg" sx={{ py: 15 }}>
         <Grid container spacing={8} alignItems="center">
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <SerifTypography variant="h2" gutterBottom color="primary.dark">
               Why BeautyPass?
             </SerifTypography>
@@ -98,7 +97,7 @@ export default function Home() {
               We created BeautyPass to empower masters to focus on their canvas, knowing that the foundation of their business—compliance, consent, and safety—is held with untouchable precision.
             </Typography>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper sx={{
               p: 4, bgcolor: 'primary.dark', color: 'white',
               transform: 'rotate(2deg)',
@@ -127,7 +126,7 @@ export default function Home() {
               { title: 'Technical Cards', desc: 'Pigment batches, needle depths, and procedure notes in one sanctuary.' },
               { title: 'Secure Archiving', desc: 'Your clients data, protected by the same security as a bank.' },
             ].map((item, i) => (
-              <Grid item xs={12} md={4} key={i}>
+              <Grid size={{ xs: 12, md: 4 }} key={i}>
                 <Stack spacing={2}>
                   <Typography variant="h5" sx={{ color: 'primary.light', fontWeight: 'bold' }}>0{i + 1}</Typography>
                   <SerifTypography variant="h4">{item.title}</SerifTypography>
@@ -152,7 +151,7 @@ export default function Home() {
             { step: '3', title: 'The Sacred Signature', desc: 'Clients review and sign digitally, creating a permanent bond of trust.' },
           ].map((item, i) => (
             <Grid container spacing={4} key={i} alignItems="center" direction={i % 2 === 0 ? 'row' : 'row-reverse'}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box sx={{
                   width: 80, height: 80, borderRadius: '50%',
                   bgcolor: 'primary.main', color: 'white',
@@ -164,7 +163,7 @@ export default function Home() {
                 <SerifTypography variant="h3" gutterBottom>{item.title}</SerifTypography>
                 <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>{item.desc}</Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box sx={{ height: 200, bgcolor: 'primary.light', opacity: 0.1, borderRadius: 10 }} />
               </Grid>
             </Grid>
