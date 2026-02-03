@@ -1,7 +1,6 @@
 'use client'
 
-import { Box, Button, Container, Typography, Stack, Paper, Divider, useTheme } from '@mui/material'
-import Grid from '@mui/material/Grid2'
+import { Box, Button, Container, Typography, Stack, Paper, Grid, Divider, useTheme } from '@mui/material'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import React, { useEffect, useState } from 'react'
@@ -47,7 +46,7 @@ export default function Home() {
       {/* Hero Section */}
       <Box sx={{
         pt: 15, pb: 10,
-        background: 'linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 100%)',
+        background: 'linear-gradient(135deg, #f3eaff 0%, #FFFFFF 100%)',
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -55,7 +54,7 @@ export default function Home() {
         <Box sx={{
           position: 'absolute', top: -100, right: -100,
           width: 400, height: 400, borderRadius: '50%',
-          bgcolor: 'primary.light', opacity: 0.1, filter: 'blur(100px)'
+          bgcolor: 'primary.light', opacity: 0.3, filter: 'blur(100px)'
         }} />
 
         <Container maxWidth="lg">

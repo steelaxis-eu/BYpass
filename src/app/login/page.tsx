@@ -42,12 +42,21 @@ function LoginForm() {
     return (
         <Paper elevation={3} sx={{ p: 4, width: '100%', borderRadius: 3 }}>
             <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-                <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h4" gutterBottom color="primary" fontWeight="bold">
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <Typography
+                        variant="h3"
+                        gutterBottom
+                        color="primary.dark"
+                        sx={{ fontFamily: 'var(--font-playfair), serif', fontWeight: 700 }}
+                    >
                         BeautyPass
                     </Typography>
-                    <Typography color="text.secondary">
-                        Sign in or create a Client account
+                    <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={{ letterSpacing: 1, textTransform: 'uppercase', fontSize: '0.75rem' }}
+                    >
+                        The Sanctuary of Aesthetic Compliance
                     </Typography>
                 </Box>
 

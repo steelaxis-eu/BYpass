@@ -13,17 +13,17 @@ const theme = createTheme({
     palette: {
         mode: 'light',
         primary: {
-            main: '#D81B60', // Rose Pink
-            light: '#F06292',
-            dark: '#880E4F',
-            contrastText: '#ffffff',
+            main: '#e5d0ff', // Lavender
+            light: '#f3eaff',
+            dark: '#b39ddb',
+            contrastText: '#263238', // Dark charcoal for contrast on light lavender
         },
         secondary: {
             main: '#263238', // Deep Charcoal
             contrastText: '#ffffff',
         },
         background: {
-            default: '#FFFAFA', // Snow white / very light blush
+            default: '#fbfaff', // Softest lavender/white
             paper: '#ffffff',
         },
     },
