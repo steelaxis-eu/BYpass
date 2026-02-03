@@ -69,17 +69,8 @@ export default function MastersPage() {
                         required
                         fullWidth
                     />
-                    <TextField
-                        name="password"
-                        label="Password"
-                        type="password"
-                        required
-                        fullWidth
-                        helperText="Minimum 8 characters"
-                    />
-
                     <Button type="submit" variant="contained" size="large">
-                        Create Master Account
+                        Send Invitation & Create Master
                     </Button>
                 </Stack>
             </Paper>

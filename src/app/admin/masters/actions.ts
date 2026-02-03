@@ -7,7 +7,6 @@ import { z } from 'zod'
 
 const createMasterSchema = z.object({
     email: z.string().email(),
-    password: z.string().min(8),
     fullName: z.string().min(2),
     salonName: z.string().min(2)
 })
@@ -35,7 +34,6 @@ export async function createMaster(formData: FormData) {
     // 2. Validate Input
     const parsed = createMasterSchema.safeParse({
         email: formData.get('email'),
-        password: formData.get('password'),
         fullName: formData.get('fullName'),
         salonName: formData.get('salonName')
     })
@@ -47,37 +45,36 @@ export async function createMaster(formData: FormData) {
     const data = parsed.data
     const supabaseAdmin = createAdminClient()
 
-    // 3. Create User in Auth System
-    const { data: newUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-        user_metadata: { full_name: data.fullName }
-    })
+    // 3. Invite User by Email
+    const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        data.email,
+        {
+            data: { full_name: data.fullName },
+            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+        }
+    )
 
-    if (authError || !newUser.user) {
-        return { error: authError?.message || 'Failed to create auth user' }
+    if (inviteError || !inviteData.user) {
+        return { error: inviteError?.message || 'Failed to send invitation' }
     }
 
     // 4. Create Profile with 'master' role
-    // We use admin client because RLS might block normal insert if not careful, 
-    // though admin role usually has full access via RLS if configured.
-    // Using admin client bypasses RLS for certainty here.
     const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .insert({
-            id: newUser.user.id,
+            id: inviteData.user.id,
             role: 'master',
             full_name: data.fullName,
             salon_name: data.salonName
         })
 
+
     if (profileError) {
-        // Cleanup if profile fails (atomic-ish)
-        await supabaseAdmin.auth.admin.deleteUser(newUser.user.id)
+        // Cleanup if profile fails
+        await supabaseAdmin.auth.admin.deleteUser(inviteData.user.id)
         return { error: 'Failed to create master profile: ' + profileError.message }
     }
 
     revalidatePath('/admin/masters')
-    return { success: true, message: 'Master created successfully' }
+    return { success: true, message: 'Invitation sent and master created successfully' }
 }
