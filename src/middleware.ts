@@ -53,9 +53,32 @@ export async function updateSession(request: NextRequest) {
             return NextResponse.redirect(url)
         }
 
-        // Admin Verification Logic (Placeholder for now)
-        if (user && request.nextUrl.pathname.startsWith('/admin')) {
-            // Check profile logic would go here
+        if (user) {
+            // 1. RBAC: Protect Admin Routes
+            if (request.nextUrl.pathname.startsWith('/admin')) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile?.role !== 'admin') {
+                    return NextResponse.redirect(new URL('/master/dashboard?error=Unauthorized', request.url))
+                }
+            }
+
+            // 2. RBAC: Protect Master Routes (Optional: if clients shouldn't see it)
+            if (request.nextUrl.pathname.startsWith('/master')) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+
+                if (!['admin', 'master'].includes(profile?.role || '')) {
+                    return NextResponse.redirect(new URL('/?error=Unauthorized', request.url))
+                }
+            }
         }
 
         return supabaseResponse

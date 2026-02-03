@@ -16,13 +16,13 @@ import {
     Alert,
     CircularProgress
 } from '@mui/material'
-import SignaturePad from './SignaturePad'
+import SignatureManager from './Signature/SignatureManager'
 import { generateWaiverPDF } from '@/utils/pdfGenerator'
-import { uploadWaiver } from '@/utils/storage'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { createProcedure } from '@/app/actions/procedures'
 
-const steps = ['Technical Details', 'Client Waiver', 'Finalize']
+const steps = ['Client Details', 'Health Screening', 'Technical Details', 'Client Waiver', 'Finalize']
 
 export default function ProcedureForm() {
     const [activeStep, setActiveStep] = useState(0)
@@ -35,7 +35,17 @@ export default function ProcedureForm() {
         shade: '',
         batchNumber: '',
         needleSize: '',
-        clientName: ''
+        clientName: '',
+        personalCode: '',
+        birthDate: '',
+        healthData: {
+            allergies: false,
+            pregnancy: false,
+            diabetes: false,
+            bloodThinners: false,
+            skinConditions: false,
+            infectiousDiseases: false
+        }
     })
 
     const [signature, setSignature] = useState<string | null>(null)
@@ -49,8 +59,20 @@ export default function ProcedureForm() {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const handleSignatureSave = (dataUrl: string) => {
+    const handleHealthChange = (key: string) => {
+        setFormData({
+            ...formData,
+            healthData: {
+                ...formData.healthData,
+                // @ts-ignore
+                [key]: !formData.healthData[key]
+            }
+        })
+    }
+
+    const handleSignatureSave = (dataUrl: string, method: 'MANUAL' | 'SMART_ID') => {
         setSignature(dataUrl)
+        // Ideally we would also store the method in state/DB to know *how* they signed
         handleNext()
     }
 
@@ -60,10 +82,9 @@ export default function ProcedureForm() {
         setError(null)
 
         try {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) throw new Error('User not authenticated')
-
-            // 1. Generate PDF
+            // 1. Generate PDF Client-Side
+            // Ideally we would do this server-side too, but jsPDF is client-heavy.
+            // We generate the blob here and send it to the server.
             const pdfBlob = generateWaiverPDF({
                 clientName: formData.clientName,
                 procedureType: formData.procedureType,
@@ -72,36 +93,29 @@ export default function ProcedureForm() {
                 signatureDataUrl: signature
             })
 
-            // 2. Create Procedure Record
-            const { data: procedure, error: procError } = await supabase
-                .from('procedures')
-                .insert({
-                    master_id: user.id,
-                    client_id: user.id, // For MVP self-signing or need to select client. using self for now.
-                    type: formData.procedureType,
-                    pigment_batch_number: formData.batchNumber,
-                    status: 'completed'
-                })
-                .select()
-                .single()
+            // 2. Prepare Data for Server Action
+            const payload = new FormData()
+            payload.append('clientName', formData.clientName)
+            payload.append('personalCode', formData.personalCode)
+            payload.append('birthDate', formData.birthDate)
+            payload.append('procedureType', formData.procedureType)
+            payload.append('pigment', formData.pigment)
+            payload.append('shade', formData.shade)
+            payload.append('batchNumber', formData.batchNumber)
+            payload.append('needleSize', formData.needleSize)
+            payload.append('healthData', JSON.stringify(formData.healthData))
 
-            if (procError) throw procError
+            // Append the PDF file
+            payload.append('waiverFile', pdfBlob, 'waiver.pdf')
 
-            // 3. Upload Waiver
-            const path = await uploadWaiver(pdfBlob, user.id, procedure.id)
+            // 3. Call Server Action (Handles DB, Upload, Audit)
+            const result = await createProcedure(payload)
 
-            // 4. Create Waiver Record
-            const { error: waiverError } = await supabase
-                .from('waivers')
-                .insert({
-                    procedure_id: procedure.id,
-                    client_signature_url: path, // Storing path to PDF in storage (conceptually)
-                    pdf_storage_path: path
-                })
+            if (result.error || !result.procedure) {
+                throw new Error(result.error || 'Procedure creation failed')
+            }
 
-            if (waiverError) throw waiverError
-
-            router.push('/dashboard?success=Procedure saved')
+            router.push('/master/dashboard?success=Procedure saved')
 
         } catch (err: any) {
             setError(err.message || 'Failed to complete procedure')
@@ -130,6 +144,66 @@ export default function ProcedureForm() {
                 <Paper sx={{ p: 4 }}>
                     <Stack spacing={3}>
                         <TextField
+                            label="Client Full Name"
+                            name="clientName"
+                            value={formData.clientName}
+                            onChange={handleChange}
+                            required
+                            fullWidth
+                        />
+                        <TextField
+                            label="Personal ID Code"
+                            name="personalCode"
+                            value={formData.personalCode}
+                            onChange={handleChange}
+                            required
+                            fullWidth
+                            helperText="Will be securely hashed (GDPR)"
+                        />
+                        <TextField
+                            label="Date of Birth"
+                            name="birthDate"
+                            type="date"
+                            value={formData.birthDate}
+                            onChange={handleChange}
+                            required
+                            fullWidth
+                            slotProps={{ inputLabel: { shrink: true } }}
+                            helperText="Must be 18+"
+                        />
+                        <Button variant="contained" onClick={handleNext}>Next: Health Screening</Button>
+                    </Stack>
+                </Paper>
+            )}
+
+            {activeStep === 1 && (
+                <Paper sx={{ p: 4 }}>
+                    <Typography variant="h6" gutterBottom color="error">Health Contraindications</Typography>
+                    <Typography paragraph variant="body2">Please check if any of the following apply (Mandatory):</Typography>
+                    <Stack spacing={2}>
+                        {Object.entries(formData.healthData).map(([key, value]) => (
+                            <Button
+                                key={key}
+                                variant={value ? "contained" : "outlined"}
+                                color={value ? "error" : "primary"}
+                                onClick={() => handleHealthChange(key)}
+                                sx={{ justifyContent: 'flex-start', textTransform: 'capitalize' }}
+                            >
+                                {value ? "[X] " : "[ ] "} {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </Button>
+                        ))}
+                        <Box sx={{ pt: 2, display: 'flex', gap: 2 }}>
+                            <Button onClick={handleBack}>Back</Button>
+                            <Button variant="contained" onClick={handleNext}>Next: Technical Details</Button>
+                        </Box>
+                    </Stack>
+                </Paper>
+            )}
+
+            {activeStep === 2 && (
+                <Paper sx={{ p: 4 }}>
+                    <Stack spacing={3}>
+                        <TextField
                             select
                             label="Procedure Type"
                             name="procedureType"
@@ -143,14 +217,6 @@ export default function ProcedureForm() {
                             <MenuItem value="Tattoo">Tattoo Body Art</MenuItem>
                         </TextField>
 
-                        <TextField
-                            label="Client Full Name"
-                            name="clientName"
-                            value={formData.clientName}
-                            onChange={handleChange}
-                            required
-                            fullWidth
-                        />
 
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                             <TextField
@@ -185,21 +251,27 @@ export default function ProcedureForm() {
                             onChange={handleChange}
                         />
 
-                        <Button variant="contained" onClick={handleNext}>
-                            Next: Client Waiver
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Button onClick={handleBack}>Back</Button>
+                            <Button variant="contained" onClick={handleNext}>
+                                Next: Client Waiver
+                            </Button>
+                        </Box>
                     </Stack>
                 </Paper>
             )}
 
-            {activeStep === 1 && (
+            {activeStep === 3 && (
                 <Box>
-                    <SignaturePad onSave={handleSignatureSave} />
+                    <SignatureManager
+                        onSave={handleSignatureSave}
+                        personalCode={formData.personalCode}
+                    />
                     <Button onClick={handleBack} sx={{ mt: 2 }}>Back</Button>
                 </Box>
             )}
 
-            {activeStep === 2 && (
+            {activeStep === 4 && (
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <Typography variant="h6" gutterBottom>
                         Ready to Finalize?
