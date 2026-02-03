@@ -13,43 +13,63 @@ const theme = createTheme({
     palette: {
         mode: 'light',
         primary: {
-            main: '#009688', // Teal
+            main: '#D81B60', // Rose Pink
+            light: '#F06292',
+            dark: '#880E4F',
+            contrastText: '#ffffff',
+        },
+        secondary: {
+            main: '#263238', // Deep Charcoal
             contrastText: '#ffffff',
         },
         background: {
-            default: '#f4f6f8',
+            default: '#FFFAFA', // Snow white / very light blush
             paper: '#ffffff',
         },
     },
     typography: {
         fontFamily: roboto.style.fontFamily,
+        h1: { fontWeight: 700, letterSpacing: '-0.02em' },
+        h2: { fontWeight: 700, letterSpacing: '-0.01em' },
+        h3: { fontWeight: 600 },
+        button: { fontWeight: 600, textTransform: 'none' },
     },
     components: {
         MuiButton: {
             styleOverrides: {
                 root: {
-                    borderRadius: 8,
-                    textTransform: 'none',
-                    fontWeight: 600,
+                    borderRadius: 30, // Rounded buttons for premium feel
+                    padding: '10px 24px',
+                    boxShadow: 'none',
+                    '&:hover': {
+                        boxShadow: '0 4px 12px rgba(216, 27, 96, 0.2)',
+                    },
                 },
             },
         },
         MuiPaper: {
             defaultProps: {
                 elevation: 0,
-                variant: 'outlined',
             },
             styleOverrides: {
                 root: {
-                    borderRadius: 12,
-                    border: '1px solid #e0e0e0',
+                    borderRadius: 24,
+                    border: '1px solid rgba(216, 27, 96, 0.08)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.04)',
                 },
             },
         },
         MuiTextField: {
             defaultProps: {
                 variant: 'outlined',
-                size: 'small',
+                size: 'medium',
+            },
+            styleOverrides: {
+                root: {
+                    '& .MuiOutlinedInput-root': {
+                        borderRadius: 16,
+                    },
+                },
             },
         },
     },
