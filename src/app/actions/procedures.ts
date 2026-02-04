@@ -102,6 +102,7 @@ export async function createProcedure(formData: FormData) {
             pigment_batch_number: data.batchNumber,
             status: 'completed',
             client_name: data.clientName,
+            client_personal_code_hash: lookupHash, // Store hash in procedure for redundancy/view
             birth_date: data.birthDate,
             health_data: data.healthData
         })
