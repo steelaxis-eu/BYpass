@@ -116,3 +116,30 @@ export async function requestClientDeletion(formData: FormData) {
         }
     }
 }
+
+export async function lookupClient(personalCode: string) {
+    const supabase = await createClient()
+
+    // Hash input to match stored format
+    const crypto = await import('crypto') // Dynamic import for edge compatibility if needed
+    const normalizedCode = personalCode.trim().toUpperCase()
+    const hash = crypto.createHash('sha256').update(normalizedCode).digest('hex')
+
+    const { data: client, error } = await supabase
+        .from('clients')
+        .select('full_name, birth_date')
+        .eq('personal_code_hash', hash)
+        .single()
+
+    if (error || !client) {
+        return { found: false }
+    }
+
+    return {
+        found: true,
+        client: {
+            fullName: client.full_name,
+            birthDate: client.birth_date
+        }
+    }
+}
