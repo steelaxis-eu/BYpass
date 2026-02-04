@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 };
 
 import ThemeRegistry from '@/components/ThemeRegistry/ThemeRegistry'
+import Navigation from '@/components/Navigation'
+import SessionGuard from '@/components/SessionGuard'
 
 export default function RootLayout({
   children,
@@ -32,7 +34,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}>
-        <ThemeRegistry>{children}</ThemeRegistry>
+        <ThemeRegistry>
+          <SessionGuard />
+          <Navigation />
+          {children}
+        </ThemeRegistry>
       </body>
     </html>
   );
