@@ -56,13 +56,21 @@ export async function updateSession(request: NextRequest) {
         if (user) {
             // 1. RBAC: Protect Admin Routes
             if (request.nextUrl.pathname.startsWith('/admin')) {
-                const { data: profile } = await supabase
+                const { data: profile, error } = await supabase
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
                     .single()
 
+                console.log('Middleware Admin Check:', {
+                    path: request.nextUrl.pathname,
+                    userId: user.id,
+                    role: profile?.role,
+                    error: error?.message
+                })
+
                 if (profile?.role !== 'admin') {
+                    console.log('Middleware: Redirecting to Master Dashboard (Unauthorized)')
                     return NextResponse.redirect(new URL('/master/dashboard?error=Unauthorized', request.url))
                 }
             }
