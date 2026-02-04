@@ -5,6 +5,15 @@ description: Advanced Security guidelines including RLS, Middleware, GDPR Compli
 
 # Security Best Practices
 
+> [!IMPORTANT]
+> **MANDATORY PRE-FLIGHT CHECKLIST**
+> Before applying *any* change, no matter how small, you MUST verify:
+> 1. **Zero-Trust**: Does this write to the DB? If yes, is it using a Server Action + Admin Client? (Frontend must NEVER write directly).
+> 2. **Validation**: Are all inputs validated with Zod schemas?
+> 3. **Privacy**: Does this expose Personal Codes? If yes, hash them first.
+> 4. **Compliance**: Does this delete data? If yes, check for Liability Period (Legal Hold).
+> 5. **Audit**: Does this sign/finalize a document? If yes, log IP, User Agent, and Content Hash.
+
 ## 1. Database Security (Row Level Security)
 **NEVER** toggle "Enable Row Level Security" off.
 Every table must have policies for SELECT, INSERT, UPDATE, DELETE.

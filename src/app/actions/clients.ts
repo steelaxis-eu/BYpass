@@ -127,7 +127,7 @@ export async function lookupClient(personalCode: string) {
 
     const { data: client, error } = await supabase
         .from('clients')
-        .select('full_name, birth_date')
+        .select('id, full_name, birth_date')
         .eq('personal_code_hash', hash)
         .single()
 
@@ -135,11 +135,20 @@ export async function lookupClient(personalCode: string) {
         return { found: false }
     }
 
+    // Fetch last 5 procedures for context
+    const { data: procedures } = await supabase
+        .from('procedures')
+        .select('id, created_at, type, status')
+        .eq('client_id', client.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
     return {
         found: true,
         client: {
             fullName: client.full_name,
-            birthDate: client.birth_date
+            birthDate: client.birth_date,
+            pastProcedures: procedures || []
         }
     }
 }
