@@ -54,36 +54,42 @@ export async function updateSession(request: NextRequest) {
         }
 
         if (user) {
-            // 1. RBAC: Protect Admin Routes
-            if (request.nextUrl.pathname.startsWith('/admin')) {
-                const { data: profile, error } = await supabase
+            // Use Service Role for Profile Check to bypass RLS recursion/issues
+            // This is safe because we trust the 'user.id' from auth.getUser()
+            const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+            let role = 'client' // Default
+
+            if (serviceRoleKey) {
+                // Create a sudo client specific for this request to check permissions
+                const sudo = createServerClient(
+                    supabaseUrl,
+                    serviceRoleKey,
+                    { cookies: { getAll() { return [] }, setAll() { } } }
+                )
+
+                const { data: profile, error } = await sudo
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
                     .single()
 
-                console.log('Middleware Admin Check:', {
-                    path: request.nextUrl.pathname,
-                    userId: user.id,
-                    role: profile?.role,
-                    error: error?.message
-                })
+                if (profile?.role) role = profile.role
+                if (error) console.error('Middleware Role Check Error:', error.message)
+            } else {
+                console.error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY missing in middleware. Admin checks may fail.')
+            }
 
-                if (profile?.role !== 'admin') {
-                    console.log('Middleware: Redirecting to Master Dashboard (Unauthorized)')
+            // 1. RBAC: Protect Admin Routes
+            if (request.nextUrl.pathname.startsWith('/admin')) {
+                // console.log('Middleware Admin Check:', { path: request.nextUrl.pathname, userId: user.id, role })
+                if (role !== 'admin') {
                     return NextResponse.redirect(new URL('/master/dashboard?error=Unauthorized', request.url))
                 }
             }
 
             // 2. RBAC: Protect Master Routes (Optional: if clients shouldn't see it)
             if (request.nextUrl.pathname.startsWith('/master')) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single()
-
-                if (!['admin', 'master'].includes(profile?.role || '')) {
+                if (!['admin', 'master'].includes(role)) {
                     return NextResponse.redirect(new URL('/?error=Unauthorized', request.url))
                 }
             }
